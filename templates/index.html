@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script>
+        async function sendPredictionRequest(event) {
+            event.preventDefault();  // Prevent form from submitting the usual way
+
+            const formData = {
+                'Depreciation and amortization': parseFloat(document.getElementById('Depreciation and amortization').value),
+                'EBITDA': parseFloat(document.getElementById('EBITDA').value),
+                'Inventory': parseFloat(document.getElementById('Inventory').value),
+                'Net Income': parseFloat(document.getElementById('Net Income').value),
+                'Total Receivables': parseFloat(document.getElementById('Total Receivables').value),
+                'Market value': parseFloat(document.getElementById('Market value').value),
+                'Total assets': parseFloat(document.getElementById('Total assets').value),
+                'Total Current Liabilities': parseFloat(document.getElementById('Total Current Liabilities').value),
+                'Total Long-term Debt': parseFloat(document.getElementById('Total Long-term Debt').value),
+                'Total Revenue': parseFloat(document.getElementById('Total Revenue').value)
+            };
+
+            // Check if all values are numbers
+            for (const key in formData) {
+                if (isNaN(formData[key])) {
+                    document.getElementById('errorResult').innerHTML = `<p class="text-red-500 font-semibold">Invalid input for ${key}. Please enter a valid number.</p>`;
+                    return;  // Exit the function if any input is invalid
+                }
+            }
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    // Display prediction result
+                    document.getElementById('predictionResult').innerHTML = `
+                        <p class="text-lg font-semibold">Prediction: ${result.prediction === 1 ? 'Invest' : 'Do not Invest'}</p>
+                        <p>Class 0 Probability: ${result.probabilities.class_0}</p>
+                        <p>Class 1 Probability: ${result.probabilities.class_1}</p>
+                    `;
+                    document.getElementById('errorResult').innerHTML = ''; // Clear error message if any
+                } else {
+                    throw new Error(result.error || 'An error occurred');
+                }
+            } catch (error) {
+                document.getElementById('errorResult').innerHTML = `<p class="text-red-500 font-semibold">${error.message}</p>`;
+                document.getElementById('predictionResult').innerHTML = ''; // Clear result if error occurs
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+    <div class="container mx-auto my-10 p-5">
+        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-lg p-8">
+            <h1 class="text-2xl font-bold text-center text-gray-800 mb-6">Investment Prediction</h1>
+
+            <form id="predictionForm" onsubmit="sendPredictionRequest(event)">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2" for="Depreciation and amortization">Depreciation and Amortization</label>
+                        <input type="number" step="0.01" id="Depreciation and amortization" name="Depreciation and amortization" class="w-full px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2" for="EBITDA">EBITDA</label>
+                        <input type="number" step="0.01" id="EBITDA" name="EBITDA" class="w-full px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2" for="Inventory">Inventory</label>
+                        <input type="number" step="0.01" id="Inventory" name="Inventory" class="w-full px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2" for="Net Income">Net Income</label>
+                        <input type="number" step="0.01" id="Net Income" name="Net Income" class="w-full px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2" for="Total Receivables">Total Receivables</label>
+                        <input type="number" step="0.01" id="Total Receivables" name="Total Receivables" class="w-full px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2" for="Market value">Market Value</label>
+                        <input type="number" step="0.01" id="Market value" name="Market value" class="w-full px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2" for="Total assets">Total Assets</label>
+                        <input type="number" step="0.01" id="Total assets" name="Total assets" class="w-full px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2" for="Total Current Liabilities">Total Current Liabilities</label>
+                        <input type="number" step="0.01" id="Total Current Liabilities" name="Total Current Liabilities" class="w-full px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2" for="Total Long-term Debt">Total Long-term Debt</label>
+                        <input type="number" step="0.01" id="Total Long-term Debt" name="Total Long-term Debt" class="w-full px-3 py-2 border rounded-lg" required>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2" for="Total Revenue">Total Revenue</label>
+                        <input type="number" step="0.01" id="Total Revenue" name="Total Revenue" class="w-full px-3 py-2 border rounded-lg" required>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center">
+                    <button type="submit" class="px-6 py-2 text-white bg-blue-500 rounded-lg shadow-md hover:bg-blue-600 focus:outline-none">Predict</button>
+                </div>
+            </form>
+
+            <div id="predictionResult" class="mt-6"></div>
+            <div id="errorResult" class="mt-6"></div>
+        </div>
+    </div>
+</body>
+</html>
